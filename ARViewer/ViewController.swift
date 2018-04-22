@@ -384,6 +384,8 @@ extension ViewController: CBCentralManagerDelegate, CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         let data = characteristic.value
         print("receive data: \(String.init(data: data!, encoding: String.Encoding.utf8))")
+    
+        // TODO: deal with "fire" and "stop"
     }
     
     /** 写入数据 */
