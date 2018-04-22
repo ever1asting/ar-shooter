@@ -1,12 +1,3 @@
-//
-//  ViewController.swift
-//  ARViewer
-// http://texnotes.me/post/5/ for tutorial
-//
-//  Created by Faris Sbahi on 6/6/17.
-//  Copyright © 2017 Faris Sbahi. All rights reserved.
-//
-
 import UIKit
 import SceneKit
 import ARKit
@@ -159,6 +150,10 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
     }
     
     func fireOnce() { // fire bullet in direction camera is facing
+        
+        let now = Date()
+        print("in fireOnce, \(now.timeIntervalSince1970)")
+        
         self.playSoundEffect(ofType: .torpedo)
         
         let bulletsNode = Bullet()
@@ -171,7 +166,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         sceneView.scene.rootNode.addChildNode(bulletsNode)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: {
-            print("removing bullet")
+//            print("removing bullet")
             self.removeNodeWithAnimation(bulletsNode, explosion: false)
         })
         
@@ -409,18 +404,26 @@ extension ViewController: CBCentralManagerDelegate, CBPeripheralDelegate {
         let data = characteristic.value
         let dataString = String.init(data: data!, encoding: String.Encoding.utf8)
         print("receive data: \(dataString)")
-        print(isReadyToFire)
+        
+        let now = Date()
+        print(now.timeIntervalSince1970)
+     
         // TODO: deal with "fire" and "stop"
         if isReadyToFire {
             print("in: \(isReadyToFire)")
             if let res = dataString!.range(of: "fire") {
                 isReadyToFire = false
                 fireOnce()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
+                    isReadyToFire = true
+                })
             }
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0, execute: {
-            isReadyToFire = true
-        })
+        
+        
+//        if let res = dataString!.range(of: "fire") {
+//            fireOnce()
+//        }
     }
     
     /** 写入数据 */
