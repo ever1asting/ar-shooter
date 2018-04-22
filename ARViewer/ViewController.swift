@@ -17,11 +17,13 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
 
     // ble
     private let Service_UUID: String = "FFE0"
-    private let Characteristic_UUID: String = "FfE1"
+    private let Characteristic_UUID: String = "FFE1"
     
     private var centralManager: CBCentralManager?
     private var peripheral: CBPeripheral?
     private var characteristic: CBCharacteristic?
+    
+    private var isReadyToFire: Bool = true
     
     // ar
     @IBOutlet var sceneView: ARSCNView!
@@ -135,6 +137,25 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         
         // Play torpedo sound when bullet is launched
         
+//        self.playSoundEffect(ofType: .torpedo)
+//
+//        let bulletsNode = Bullet()
+//
+//        let (direction, position) = self.getUserVector()
+//        bulletsNode.position = position // SceneKit/AR coordinates are in meters
+//
+//        let bulletDirection = direction
+//        bulletsNode.physicsBody?.applyForce(bulletDirection, asImpulse: true)
+//        sceneView.scene.rootNode.addChildNode(bulletsNode)
+//
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: {
+//            print("removing bullet")
+//            self.removeNodeWithAnimation(bulletsNode, explosion: false)
+//        })
+        
+    }
+    
+    func fireOnce() { // fire bullet in direction camera is facing
         self.playSoundEffect(ofType: .torpedo)
         
         let bulletsNode = Bullet()
@@ -383,9 +404,17 @@ extension ViewController: CBCentralManagerDelegate, CBPeripheralDelegate {
     /** 接收到数据 */
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         let data = characteristic.value
-        print("receive data: \(String.init(data: data!, encoding: String.Encoding.utf8))")
+        let dataString = String.init(data: data!, encoding: String.Encoding.utf8)
+        print("receive data: \(dataString)")
     
         // TODO: deal with "fire" and "stop"
+        if self.isReadyToFire, let res = dataString!.range(of: "fire") {
+            self.isReadyToFire = false
+            fireOnce()
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1 , execute: {
+            self.isReadyToFire = true
+        })
     }
     
     /** 写入数据 */
@@ -393,4 +422,5 @@ extension ViewController: CBCentralManagerDelegate, CBPeripheralDelegate {
         print("写入数据")
     }
 }
+
 
