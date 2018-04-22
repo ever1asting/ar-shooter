@@ -13,6 +13,9 @@ import ARKit
 import AVFoundation
 import CoreBluetooth
 
+// global
+var isReadyToFire: Bool = true
+
 class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDelegate {
 
     // ble
@@ -23,7 +26,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
     private var peripheral: CBPeripheral?
     private var characteristic: CBCharacteristic?
     
-    private var isReadyToFire: Bool = true
+//    class var isReadyToFire: Bool = true
     
     // ar
     @IBOutlet var sceneView: ARSCNView!
@@ -406,14 +409,17 @@ extension ViewController: CBCentralManagerDelegate, CBPeripheralDelegate {
         let data = characteristic.value
         let dataString = String.init(data: data!, encoding: String.Encoding.utf8)
         print("receive data: \(dataString)")
-    
+        print(isReadyToFire)
         // TODO: deal with "fire" and "stop"
-        if self.isReadyToFire, let res = dataString!.range(of: "fire") {
-            self.isReadyToFire = false
-            fireOnce()
+        if isReadyToFire {
+            print("in: \(isReadyToFire)")
+            if let res = dataString!.range(of: "fire") {
+                isReadyToFire = false
+                fireOnce()
+            }
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1 , execute: {
-            self.isReadyToFire = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0, execute: {
+            isReadyToFire = true
         })
     }
     
