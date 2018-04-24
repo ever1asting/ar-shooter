@@ -33,20 +33,42 @@
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <imageView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleAspectFit" insetsLayoutMarginsFromSafeArea="NO" image="crosshair" translatesAutoresizingMaskIntoConstraints="NO" id="Ael-wB-bxk">
+                                <rect key="frame" x="381" y="162" width="50" height="50"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="50" id="1Vs-4t-5hK"/>
+                                    <constraint firstAttribute="width" constant="50" id="gR7-pZ-xGo"/>
+                                </constraints>
+                            </imageView>
+                            <imageView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleAspectFit" misplaced="YES" insetsLayoutMarginsFromSafeArea="NO" image="spark" translatesAutoresizingMaskIntoConstraints="NO" id="eXY-Yu-EUF" userLabel="spark">
+                                <rect key="frame" x="381" y="162" width="100" height="100"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <bool key="isElement" value="YES"/>
+                                </accessibility>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="150" id="5oW-Cx-CeB"/>
+                                    <constraint firstAttribute="height" constant="150" id="AHm-fB-njU"/>
+                                </constraints>
+                            </imageView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
+                            <constraint firstItem="eXY-Yu-EUF" firstAttribute="centerX" secondItem="3lZ-pC-778" secondAttribute="centerX" id="1dR-Jg-6q5"/>
                             <constraint firstAttribute="trailing" secondItem="hZw-fN-xm5" secondAttribute="trailing" id="5Er-AD-2L2"/>
                             <constraint firstItem="hZw-fN-xm5" firstAttribute="leading" secondItem="3lZ-pC-778" secondAttribute="leading" id="7NI-w5-EWS"/>
+                            <constraint firstItem="eXY-Yu-EUF" firstAttribute="centerY" secondItem="3lZ-pC-778" secondAttribute="centerY" id="YNP-Ue-0dO"/>
                             <constraint firstItem="hZw-fN-xm5" firstAttribute="top" secondItem="3lZ-pC-778" secondAttribute="top" id="Z75-Io-7Do"/>
+                            <constraint firstItem="Ael-wB-bxk" firstAttribute="centerY" secondItem="3lZ-pC-778" secondAttribute="centerY" id="cA1-MW-ZBP"/>
                             <constraint firstItem="qii-hK-aFk" firstAttribute="top" secondItem="3lZ-pC-778" secondAttribute="top" constant="20" id="cc5-Ov-2gk"/>
                             <constraint firstAttribute="bottom" secondItem="hZw-fN-xm5" secondAttribute="bottom" id="dBm-az-6As"/>
+                            <constraint firstItem="Ael-wB-bxk" firstAttribute="centerX" secondItem="3lZ-pC-778" secondAttribute="centerX" id="iaY-V0-v31"/>
                             <constraint firstItem="qii-hK-aFk" firstAttribute="centerX" secondItem="hZw-fN-xm5" secondAttribute="centerX" constant="-310.5" id="niX-dK-uUP"/>
                         </constraints>
                     </view>
                     <connections>
                         <outlet property="sceneView" destination="hZw-fN-xm5" id="fzd-a4-oL1"/>
                         <outlet property="scoreLabel" destination="qii-hK-aFk" id="k4y-KH-bXr"/>
+                        <outlet property="sparkview" destination="eXY-Yu-EUF" id="QwS-kv-bDO"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SZV-WD-TEh" sceneMemberID="firstResponder"/>
@@ -59,4 +81,8 @@
             <point key="canvasLocation" x="136.69950738916256" y="116"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="crosshair" width="200" height="200"/>
+        <image name="spark" width="113" height="113"/>
+    </resources>
 </document>

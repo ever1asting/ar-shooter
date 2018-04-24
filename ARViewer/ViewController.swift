@@ -24,6 +24,8 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
     
     @IBOutlet weak var scoreLabel: UILabel!
     
+    @IBOutlet weak var sparkview: UIImageView!
+    
     var player: AVAudioPlayer!
     
     private var userScore: Int = 0 {
@@ -57,6 +59,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         self.addNewShip()
         
         self.userScore = 0
+        self.sparkview.alpha = 0
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -179,6 +182,12 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         // remove
         DispatchQueue.main.asyncAfter(deadline: .now() + 4, execute: {
             self.removeNodeWithAnimation(bulletsNode, explosion: false)
+        })
+        
+        // spark
+        self.sparkview.alpha = 0.8
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: {
+            self.sparkview.alpha = 0
         })
     }
     
