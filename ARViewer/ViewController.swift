@@ -159,13 +159,14 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         let bulletsNode = Bullet()
         
         let (direction, position) = self.getUserVector()
-        bulletsNode.position = position // SceneKit/AR coordinates are in meters
+        bulletsNode.position = SCNVector3(position.x+direction.x,position.y+direction.y,position.z+direction.z) // SceneKit/AR coordinates are in meters
         
         let bulletDirection = direction
-        bulletsNode.physicsBody?.applyForce(bulletDirection, asImpulse: true)
+        bulletsNode.physicsBody?.velocity=bulletDirection
+//        bulletsNode.physicsBody?.applyForce(bulletDirection, asImpulse: true)
         sceneView.scene.rootNode.addChildNode(bulletsNode)
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: {
 //            print("removing bullet")
             self.removeNodeWithAnimation(bulletsNode, explosion: false)
         })
@@ -205,7 +206,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         
         // Play collision sound for all collisions (bullet-bullet, etc.)
         
-        self.playSoundEffect(ofType: .collision)
+//        self.playSoundEffect(ofType: .collision)
         
         if explosion {
             
@@ -250,7 +251,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
             self.removeNodeWithAnimation(contact.nodeB, explosion: false) // remove the bullet
             self.userScore += 1
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: { // remove/replace ship after half a second to visualize collision
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.0, execute: { // remove/replace ship after half a second to visualize collision
                 self.removeNodeWithAnimation(contact.nodeA, explosion: true)
                 self.addNewShip()
             })
