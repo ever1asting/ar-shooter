@@ -45,7 +45,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         sceneView.delegate = self
         
         // Show statistics such as fps and timing information
-        sceneView.showsStatistics = true
+        sceneView.showsStatistics = false //true
         
         // Create a new empty scene
         let scene = SCNScene()
@@ -159,18 +159,27 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         let bulletsNode = Bullet()
         
         let (direction, position) = self.getUserVector()
-        bulletsNode.position = SCNVector3(position.x+direction.x,position.y+direction.y,position.z+direction.z) // SceneKit/AR coordinates are in meters
+        var coff: Float = 0.2
+        bulletsNode.position = SCNVector3(position.x+direction.x * coff,position.y+direction.y * coff,position.z+direction.z * coff) // SceneKit/AR coordinates are in meters
         
         let bulletDirection = direction
-        bulletsNode.physicsBody?.velocity=bulletDirection
+        var speedCoff: Float = 5.0
+        bulletsNode.physicsBody?.velocity = SCNVector3(bulletDirection.x * speedCoff, bulletDirection.y * speedCoff, bulletDirection.z * speedCoff)
 //        bulletsNode.physicsBody?.applyForce(bulletDirection, asImpulse: true)
         sceneView.scene.rootNode.addChildNode(bulletsNode)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: {
-//            print("removing bullet")
-            self.removeNodeWithAnimation(bulletsNode, explosion: false)
+
+        // disappear
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+            let material = SCNMaterial()
+//            material.diffuse.contents = UIImage(named: "bullet_texture")
+            material.transparency = 0.0
+            bulletsNode.geometry?.materials  = [material]
         })
         
+        // remove
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4, execute: {
+            self.removeNodeWithAnimation(bulletsNode, explosion: false)
+        })
     }
     
     // MARK: - Game Functionality
