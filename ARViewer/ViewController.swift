@@ -1,19 +1,25 @@
-//
-//  ViewController.swift
-//  ARViewer
-// http://texnotes.me/post/5/ for tutorial
-//
-//  Created by Faris Sbahi on 6/6/17.
-//  Copyright © 2017 Faris Sbahi. All rights reserved.
-//
-
 import UIKit
 import SceneKit
 import ARKit
 import AVFoundation
+import CoreBluetooth
+
+// global
+var isReadyToFire: Bool = true
 
 class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDelegate {
 
+    // ble
+    private let Service_UUID: String = "FFE0"
+    private let Characteristic_UUID: String = "FFE1"
+    
+    private var centralManager: CBCentralManager?
+    private var peripheral: CBPeripheral?
+    private var characteristic: CBCharacteristic?
+    
+//    class var isReadyToFire: Bool = true
+    
+    // ar
     @IBOutlet var sceneView: ARSCNView!
     
     @IBOutlet weak var scoreLabel: UILabel!
@@ -31,6 +37,9 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // ble
+        centralManager = CBCentralManager.init(delegate: self, queue: .main)
         
         // Set the view's delegate
         sceneView.delegate = self
@@ -122,16 +131,45 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         
         // Play torpedo sound when bullet is launched
         
+//        self.playSoundEffect(ofType: .torpedo)
+//
+//        let bulletsNode = Bullet()
+//
+//        let (direction, position) = self.getUserVector()
+//        bulletsNode.position = position // SceneKit/AR coordinates are in meters
+//
+//        let bulletDirection = direction
+//        bulletsNode.physicsBody?.applyForce(bulletDirection, asImpulse: true)
+//        sceneView.scene.rootNode.addChildNode(bulletsNode)
+//
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: {
+//            print("removing bullet")
+//            self.removeNodeWithAnimation(bulletsNode, explosion: false)
+//        })
+        
+    }
+    
+    func fireOnce() { // fire bullet in direction camera is facing
+        
+        let now = Date()
+        print("in fireOnce, \(now.timeIntervalSince1970)")
+        
         self.playSoundEffect(ofType: .torpedo)
         
         let bulletsNode = Bullet()
         
         let (direction, position) = self.getUserVector()
-        bulletsNode.position = position // SceneKit/AR coordinates are in meters
+        bulletsNode.position = SCNVector3(position.x+direction.x,position.y+direction.y,position.z+direction.z) // SceneKit/AR coordinates are in meters
         
         let bulletDirection = direction
-        bulletsNode.physicsBody?.applyForce(bulletDirection, asImpulse: true)
+        bulletsNode.physicsBody?.velocity=bulletDirection
+//        bulletsNode.physicsBody?.applyForce(bulletDirection, asImpulse: true)
         sceneView.scene.rootNode.addChildNode(bulletsNode)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: {
+//            print("removing bullet")
+            self.removeNodeWithAnimation(bulletsNode, explosion: false)
+        })
         
     }
     
@@ -168,7 +206,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         
         // Play collision sound for all collisions (bullet-bullet, etc.)
         
-        self.playSoundEffect(ofType: .collision)
+//        self.playSoundEffect(ofType: .collision)
         
         if explosion {
             
@@ -213,7 +251,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
             self.removeNodeWithAnimation(contact.nodeB, explosion: false) // remove the bullet
             self.userScore += 1
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: { // remove/replace ship after half a second to visualize collision
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.0, execute: { // remove/replace ship after half a second to visualize collision
                 self.removeNodeWithAnimation(contact.nodeA, explosion: true)
                 self.addNewShip()
             })
@@ -274,3 +312,125 @@ enum SoundEffect: String {
     case collision = "collision"
     case torpedo = "torpedo"
 }
+
+// ble
+extension ViewController: CBCentralManagerDelegate, CBPeripheralDelegate {
+    
+    // 判断手机蓝牙状态
+    func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        switch central.state {
+        case .unknown:
+            print("未知的")
+        case .resetting:
+            print("重置中")
+        case .unsupported:
+            print("不支持")
+        case .unauthorized:
+            print("未验证")
+        case .poweredOff:
+            print("未启动")
+        case .poweredOn:
+            print("可用")
+            central.scanForPeripherals(withServices: [CBUUID.init(string: Service_UUID)], options: nil)
+        }
+    }
+    
+    /** 发现符合要求的外设 */
+    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+        self.peripheral = peripheral
+        // 根据外设名称来过滤
+        if (peripheral.name?.hasPrefix("AR Shooting"))! {
+            central.connect(peripheral, options: nil)
+        }
+        central.connect(peripheral, options: nil)
+    }
+    
+    /** 连接成功 */
+    func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        self.centralManager?.stopScan()
+        peripheral.delegate = self
+        peripheral.discoverServices([CBUUID.init(string: Service_UUID)])
+        print("连接成功")
+    }
+    
+    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        print("连接失败")
+    }
+    
+    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        print("断开连接")
+        // 重新连接
+        central.connect(peripheral, options: nil)
+    }
+    
+    /** 发现服务 */
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+        for service: CBService in peripheral.services! {
+            print("外设中的服务有：\(service)")
+        }
+        //本例的外设中只有一个服务
+        let service = peripheral.services?.last
+        // 根据UUID寻找服务中的特征
+        peripheral.discoverCharacteristics([CBUUID.init(string: Characteristic_UUID)], for: service!)
+    }
+    
+    /** 发现特征 */
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+        for characteristic: CBCharacteristic in service.characteristics! {
+            print("外设中的特征有：\(characteristic)")
+        }
+        
+        self.characteristic = service.characteristics?.last
+        // 读取特征里的数据
+        peripheral.readValue(for: self.characteristic!)
+        // 订阅
+        peripheral.setNotifyValue(true, for: self.characteristic!)
+    }
+    
+    /** 订阅状态 */
+    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
+        if let error = error {
+            print("订阅失败: \(error)")
+            return
+        }
+        if characteristic.isNotifying {
+            print("订阅成功")
+        } else {
+            print("取消订阅")
+        }
+    }
+    
+    /** 接收到数据 */
+    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+        let data = characteristic.value
+        let dataString = String.init(data: data!, encoding: String.Encoding.utf8)
+        print("receive data: \(dataString)")
+        
+        let now = Date()
+        print(now.timeIntervalSince1970)
+     
+        // TODO: deal with "fire" and "stop"
+        if isReadyToFire {
+            print("in: \(isReadyToFire)")
+            if let res = dataString!.range(of: "fire") {
+                isReadyToFire = false
+                fireOnce()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
+                    isReadyToFire = true
+                })
+            }
+        }
+        
+        
+//        if let res = dataString!.range(of: "fire") {
+//            fireOnce()
+//        }
+    }
+    
+    /** 写入数据 */
+    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+        print("写入数据")
+    }
+}
+
+
